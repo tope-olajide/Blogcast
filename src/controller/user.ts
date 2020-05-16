@@ -25,7 +25,7 @@ export default class User {
 *
 * @memberof Users
 */
-  public signUp({ body }: Request, res: Response): object {
+  public async signUp({ body }: Request, res: Response): Promise<object> {
     const {
       email, username, firstname, lastname, password,
     } = body;
@@ -108,6 +108,57 @@ export default class User {
       return res.status(400).json({
         success: false,
         message: 'Unable to Register user',
+        error: err,
+      });
+    }
+  }
+
+  /**
+   * @description - Sign in User
+   *
+   * @param {object} req - HTTP Request
+   *
+   * @param {object} res - HTTP Response
+   *
+   * @return {object} The Promise Object
+   *
+   * @memberof User
+   */
+  static async signIn({ body }: Request, res: Response): Promise<object> {
+    const { usernameOrEmail, password } = body;
+    try {
+      const userFound:any = await Users.findOne({
+        $or: [{ email: usernameOrEmail.toLowerCase() },
+          { username: usernameOrEmail.toLowerCase() }],
+      }).exec();
+      if (userFound.role === 'SuperAdmin') {
+        return res.status(400).json({
+          success: false,
+          message: 'You need to login at the admin page',
+        });
+      }
+      if (bcrypt.compareSync(password, userFound.password)) {
+        const { username } = userFound;
+        const id = userFound._id;
+        const token = jsonwebtoken.sign({
+          id,
+          username,
+          exp: Math.floor(Date.now() / 1000) + (60 * 60 * 24),
+        }, 'process.env.JWT_SECRET');
+        return res.status(200).json({
+          success: true,
+          message: 'User Signed In!',
+          token,
+        });
+      }
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid pasword!',
+      });
+    } catch (err) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found!',
         error: err,
       });
     }
