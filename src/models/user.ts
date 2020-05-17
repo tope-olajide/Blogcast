@@ -29,12 +29,6 @@ const userSchema = new Schema({
   lastname: {
     type: String,
     required: true,
-  },
-  role: {
-    type: String,
-    required: true,
-    enum: ['User', 'Admin', 'SuperAdmin'],
-    default: 'User',
-  },
+  }
 });
 export default mongoose.model('Users', userSchema);

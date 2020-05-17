@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import Users from '../models/user';
-import bcrypt from 'bcrypt';
+import * as bcrypt from 'bcrypt';
 import jsonwebtoken from 'jsonwebtoken';
 import { Request, Response } from 'express';
 import {
@@ -34,19 +34,19 @@ export default class User {
       if (verifyEmail[0] === false) {
         return [false, verifyEmail[1]];
       }
-      const verifyUsername = validateInputCharLength(username, 3, 12);
+      const verifyUsername = validateInputCharLength(username,'username', 3, 12);
       if (verifyUsername[0] === false) {
         return [false, verifyUsername[1]];
       }
-      const verifyPassword = validateInputCharLength(password, 5, 20);
+      const verifyPassword = validateInputCharLength(password,'password', 5, 20);
       if (verifyPassword[0] === false) {
         return [false, verifyPassword[1]];
       }
-      const verifyFirstName = validateOnlyStringChars(firstname, 2, 50);
+      const verifyFirstName = validateOnlyStringChars(firstname,'firstname', 2, 50);
       if (verifyFirstName[0] === false) {
         return [false, verifyFirstName[1]];
       }
-      const verifyLastName = validateOnlyStringChars(lastname, 2, 50);
+      const verifyLastName = validateOnlyStringChars(lastname,'lastname', 2, 50);
       if (verifyLastName[0] === false) {
         return [false, verifyLastName[1]];
       }
@@ -124,19 +124,24 @@ export default class User {
    *
    * @memberof User
    */
-  static async signIn({ body }: Request, res: Response): Promise<object> {
+  public async signIn({ body }: Request, res: Response): Promise<object> {
     const { usernameOrEmail, password } = body;
+    if(!usernameOrEmail || !password) {
+      return res.status(400).json({
+        success: false,
+        message: 'invalid details!'
+      });
+    }
     try {
       const userFound:any = await Users.findOne({
         $or: [{ email: usernameOrEmail.toLowerCase() },
           { username: usernameOrEmail.toLowerCase() }],
       }).exec();
-      if (userFound.role === 'SuperAdmin') {
+      if(!userFound) {
         return res.status(400).json({
           success: false,
-          message: 'You need to login at the admin page',
-        });
-      }
+          message: 'user not found!'
+        });}
       if (bcrypt.compareSync(password, userFound.password)) {
         const { username } = userFound;
         const id = userFound._id;
@@ -153,12 +158,12 @@ export default class User {
       }
       return res.status(401).json({
         success: false,
-        message: 'Invalid pasword!',
+        message: 'Invalid login Details!'  /* 'Invalid pasword!' */
       });
     } catch (err) {
       return res.status(404).json({
         success: false,
-        message: 'User not found!',
+        message: 'Invalid login Details!' /* 'User not found!' */,
         error: err,
       });
     }
