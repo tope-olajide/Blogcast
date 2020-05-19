@@ -1,11 +1,11 @@
-import mongoose from 'mongoose';
+import mongoose from 'mongoose'
 import { Request, Response } from 'express';
-import {IGetUserAuthInfoRequest} from '../interfaces'
+import { IGetUserAuthInfoRequest } from '../interfaces'
 import {
   validateInputCharLength,
 } from '../utils/mySimpleValidator';
 import StandardPosts from '../models/standardPost';
-import verifyAuthorization from '../middleware/validateUser';
+import verifyOwner from '../middleware/validateUser';
 
 
 /**
@@ -26,7 +26,7 @@ export default class StandardPost {
    *
    * @memberof StandardPost
    */
-  public async createPost(req:Request  , res: Response): Promise<object>{
+  public async createPost(req: Request, res: Response): Promise<object> {
     const userReq = req as IGetUserAuthInfoRequest;
     const userId = userReq.user.id;
     console.log(userReq.user)
@@ -34,11 +34,11 @@ export default class StandardPost {
       title, tag, featureImageUrl, content, excerpt,
     } = req.body;
     const validatePost = () => {
-      const verifyPostTitle = validateInputCharLength(title,'title', 5, 1000);
+      const verifyPostTitle = validateInputCharLength(title, 'title', 5, 1000);
       if (verifyPostTitle[0] === false) {
         return [false, verifyPostTitle[1]];
       }
-      const verifyPostContent = validateInputCharLength(content,'content', 5, 50000);
+      const verifyPostContent = validateInputCharLength(content, 'content', 5, 50000);
       if (verifyPostTitle[0] === false) {
         return [false, verifyPostContent[1]];
       }
@@ -70,6 +70,12 @@ export default class StandardPost {
         createdPost,
       });
     } catch (error) {
+      if(error.code === 11000){
+        return res.status(400).json({
+          success: false,
+          message: 'Duplicate Post',
+        });
+      }
       return res.status(400).json({
         success: false,
         message: 'Error creating Post',
@@ -77,4 +83,69 @@ export default class StandardPost {
       });
     }
   }
+  public async modifyPost(req: Request, res: Response): Promise<object> {
+    const userReq = req as IGetUserAuthInfoRequest;
+    const userId = userReq.user.id;
+    console.log(userId)
+    const {
+      postId,
+    } = req.params;
+    const {
+      title, tag, featureImageUrl, content, excerpt,
+    } = req.body;
+    const validatePost = () => {
+      const verifyPostTitle = validateInputCharLength(title,'title', 5, 1000);
+      if (verifyPostTitle[0] === false) {
+        return [false, verifyPostTitle[1]];
+      }
+      const verifyPostContent = validateInputCharLength(content,'content', 5, 50000);
+      if (verifyPostTitle[0] === false) {
+        return [false, verifyPostContent[1]];
+      }
+      return [true];
+    };
+    const validatePostDetails = validatePost();
+    if (validatePostDetails[0] === false) {
+      return res.status(400).json({
+        success: false,
+        message: validatePostDetails[1],
+      });
+    }
+    try {
+      const verifyUser = await verifyOwner(userId,postId);
+      if (verifyUser[0]) {
+        const postData = {
+          title: title || verifyUser[1].title,
+          tag: tag || verifyUser[1].tag,
+          featureImageUrl: featureImageUrl || verifyUser[1].featureImageUrl,
+          excerpt: excerpt || verifyUser[1].excerpt,
+          content: content || verifyUser[1].content,
+          modified: Date(),
+        };
+        const modifiedPost = await StandardPosts.updateMany({
+          _id: postId,
+        },
+          {
+            $set: postData,
+          });
+        return res.status(201).json({
+          success: true,
+          message: ' Entry Modified',
+          modifiedPost,
+        });
+      }
+      return res.status(verifyUser[1].errorCode).json({
+        success: false,
+        message: verifyUser[1].message,
+        postFound: verifyUser[1].postFound,
+      });
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        message: 'Error Modifying Post',
+        error,
+      });
+    }
+  }
 }
+

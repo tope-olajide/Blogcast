@@ -8,7 +8,7 @@ import StandardPosts from '../models/standardPost';
    *
    * @return {object} Promise Object
    */
-const verifyOwner = async (userId:number, postId:number): Promise<object> => {
+const verifyOwner:any = async (userId:any, postId:any): Promise<object> => {
   try {
     const postFound:any = await StandardPosts.findById({ _id: postId });
     if (!postFound) {
@@ -23,7 +23,7 @@ const verifyOwner = async (userId:number, postId:number): Promise<object> => {
         false, {
           errorCode: 401,
           message: 'You cannot delete or modify a post that does not belong to you',
-          postFound,
+          postFound:{},
         },
       ];
     }
@@ -33,9 +33,9 @@ const verifyOwner = async (userId:number, postId:number): Promise<object> => {
   } catch (error) {
     return [false, {
       errorCode: 500,
-      errorMessage: 'Error! Could not retrieve the post with the given post ID.',
+      message: error,
     }];
   }
 };
 
-export default verifyAuthorization;
+export default verifyOwner;
