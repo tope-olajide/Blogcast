@@ -1,4 +1,3 @@
-import mongoose from 'mongoose';
 import Users from '../models/user';
 import * as bcrypt from 'bcrypt';
 import jsonwebtoken from 'jsonwebtoken';
@@ -23,7 +22,7 @@ export default class User {
 *
 * @return {object} The Promise Object
 *
-* @memberof Users
+* @memberof User
 */
   public async signUp({ body }: Request, res: Response): Promise<object> {
     const {
