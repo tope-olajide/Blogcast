@@ -1,18 +1,9 @@
-/* import express from 'express';
 
-const routes = express.Router();
-
-routes.use('/user', users);
-
-export default routes;
- */
-import User from '../controller/user';
-import {Request, Response, NextFunction} from "express";
-import UserRoutes from './user';
-
+import userRoutes from './user';
+import standardPostRoutes from './standardPost';
 export class Routes { 
-    public usertController: User = new User() 
     public routes(app:any): void {   
-        app.use('/user', UserRoutes);
+        app.use('/user', userRoutes);
+        app.use('/post', standardPostRoutes);
     }
 }
