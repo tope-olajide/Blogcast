@@ -29,7 +29,6 @@ export default class StandardPost {
   public async createPost(req: Request, res: Response): Promise<object> {
     const userReq = req as IGetUserAuthInfoRequest;
     const userId = userReq.user.id;
-    console.log(userReq.user)
     const {
       title, tag, featureImageUrl, content, excerpt,
     } = req.body;
