@@ -4,13 +4,13 @@ import Auth from '../../middleware/auth';
 
 const newAuth = new Auth();
 const newStandardPost = new StandardPost;
-const entry = express.Router();
+const standardPost = express.Router();
 
-entry.use('*', newAuth.verify);
+standardPost.use('*', newAuth.verify);
 
-entry.post('/', newStandardPost.createPost);
-entry.get('/', newStandardPost.fetchAll);
-entry.put('/:postId', newStandardPost.modifyPost);
-entry.get('/:postId', newStandardPost.fetchPostDetails);
-
-export default entry;
+standardPost.post('/standard-post', newStandardPost.createPost);
+standardPost.get('/standard-post', newStandardPost.fetchAll);
+standardPost.put('/standard-post/:postId', newStandardPost.modifyPost);
+standardPost.get('/standard-post/:postId', newStandardPost.fetchPostDetails);
+standardPost.delete('/standard-post/:postId', newStandardPost.deleteStandardPost);
+export default standardPost;

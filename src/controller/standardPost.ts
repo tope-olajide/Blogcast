@@ -224,6 +224,58 @@ export default class StandardPost {
       });
     }
   }
+ /**
+   * @description - Delete Post
+   *
+   * @param {object} req - HTTP Request
+   *
+   * @param {object} res - HTTP Response
+   *
+   * @return {object} The Promise Object
+   *
+   * @memberof StandardPosts
+   */
 
+  public async deleteStandardPost(req: Request, res: Response): Promise<object> {
+    const userReq = req as IGetUserAuthInfoRequest;
+    const userId = userReq.user.id;
+    const {
+      postId,
+    } = req.params;
+    const verifyUser = await verifyOwner(userId,postId);
+    if(!verifyUser[0]){
+      return res.status(verifyUser[1].errorCode).json({
+        success: false,
+        message: verifyUser[1].message,
+        postFound: verifyUser[1].postFound,
+      });
+    }
+    try {
+      if (mongoose.Types.ObjectId.isValid(postId)) {
+        const removedPost = await StandardPosts.findOneAndRemove({ _id: postId });
+        if (removedPost) {
+          return res.status(200).json({
+            success: true,
+            message: 'Post Removed!',
+            removedPost,
+          });
+        }
+        return res.status(204).json({
+          success: true,
+          message: 'Post does not exist',
+        });
+      }
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid Post Id',
+      });
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        message: 'Error Fetching Post',
+        error,
+      });
+    }
+  }
 }
 
