@@ -9,5 +9,6 @@ const entry = express.Router();
 entry.use('*', newAuth.verify);
 entry.put('/:postId', newStandardPost.modifyPost);
 entry.post('/', newStandardPost.createPost);
+entry.get('/', newStandardPost.fetchAll);
 
 export default entry;

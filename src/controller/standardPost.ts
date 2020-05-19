@@ -86,7 +86,6 @@ export default class StandardPost {
   public async modifyPost(req: Request, res: Response): Promise<object> {
     const userReq = req as IGetUserAuthInfoRequest;
     const userId = userReq.user.id;
-    console.log(userId)
     const {
       postId,
     } = req.params;
@@ -143,6 +142,41 @@ export default class StandardPost {
       return res.status(500).json({
         success: false,
         message: 'Error Modifying Post',
+        error,
+      });
+    }
+  }
+
+  /**
+   * @description - Fetches All Standard Post
+   *
+   * @param {object} req - HTTP Request
+   *
+   * @param {object} res - HTTP Response
+   *
+   * @return {object} The Promise Object
+   *
+   * @memberof StandardPosts
+   */
+  public async fetchAll(req: Request, res: Response): Promise<object> {
+    try {
+      const allStandardPosts = await StandardPosts.find({});
+      if (allStandardPosts) {
+        return res.status(200).json({
+          success: true,
+          message: 'Standard Post Found!',
+          allStandardPosts,
+        });
+      }
+      return res.status(204).json({
+        success: true,
+        message: 'No Standard Post Found!',
+        allStandardPosts: [],
+      });
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        message: 'Error Fetching Post',
         error,
       });
     }
