@@ -7,9 +7,9 @@ const newAudioPost = new AudioPost;
 const audioPost = express.Router();
 
 audioPost.use('*', newAuth.verify);
-
+audioPost.get('/audio-post', newAudioPost.fetchAllAudioPost);
 audioPost.post('/audio-post', newAudioPost.createAudioPost);
 audioPost.put('/audio-post/:postId', newAudioPost.modifyAudioPost);
-audioPost.get('/audio-post', newAudioPost.fetchAllAudioPost);
+audioPost.get('/audio-post/:postId', newAudioPost.fetchPostDetails);
 
 export default audioPost;
