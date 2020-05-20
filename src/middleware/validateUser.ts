@@ -1,20 +1,23 @@
 import StandardPosts from '../models/standardPost';
+import AudioPosts from '../models/standardPost';
 /**
    * @description - Verifies Post Owner
    *
-   * @param {integer} userId - HTTP Request
+   * @param {integer} userId - User Id
    *
-   * @param {integer} postId - HTTP Response
+   * @param {integer} postId - Post ID
    *
+   * @param {object} postModel - Model of the post; AudioPosts or StandardPosts
+   * 
    * @return {object} Promise Object
    */
-const verifyOwner:any = async (userId:any, postId:any): Promise<object> => {
+const verifyOwner:any = async (userId:any, postId:any, postModel:any): Promise<object> => {
   try {
-    const postFound:any = await StandardPosts.findById({ _id: postId });
+    const postFound:any = await postModel.findById({ _id: postId });
     if (!postFound) {
       return [false, {
         errorCode: 404,
-        errorMessage: 'Error! The post with the given ID does not exist.',
+        message:'The post with the given ID does not exist.',
 
       }];
     }

@@ -1,22 +1,19 @@
-import mongoose from 'mongoose'
+import mongoose from 'mongoose';
 import { Request, Response } from 'express';
-import { IGetUserAuthInfoRequest } from '../interfaces'
 import {
   validateInputCharLength,
 } from '../utils/mySimpleValidator';
-import StandardPosts from '../models/standardPost';
+import AudioPosts from '../models/audioPost';
 import verifyOwner from '../middleware/validateUser';
-
-
+import { IGetUserAuthInfoRequest } from '../interfaces'
 /**
-export default class StandardPost {
- * @description - Class Definition for the StandardPost Object
+ * @description - Class Definition for the AudioPost Object
  *
- * @class StandardPost
+ * @class AudioPost
  */
-export default class StandardPost {
+export default class AudioPost {
   /**
-   * @description - Create new Standard Post
+   * @description - Create new Audio Post
    *
    * @param {object} req - HTTP Request
    *
@@ -24,22 +21,26 @@ export default class StandardPost {
    *
    * @return {object} The Promise Object
    *
-   * @memberof StandardPost
+   * @memberof AudioPost
    */
-  public async createPost(req: Request, res: Response): Promise<object> {
+  public async createAudioPost(req: Request, res: Response): Promise<object> {
     const userReq = req as IGetUserAuthInfoRequest;
     const userId = userReq.user.id;
     const {
-      title, tag, featureImageUrl, content, excerpt,
+      title, tag, featureImageUrl, content, audioUrl, excerpt,
     } = req.body;
     const validatePost = () => {
-      const verifyPostTitle = validateInputCharLength(title, 'title', 5, 1000);
+      const verifyPostTitle = validateInputCharLength(title,'title', 5, 1000);
       if (verifyPostTitle[0] === false) {
         return [false, verifyPostTitle[1]];
       }
-      const verifyPostContent = validateInputCharLength(content, 'content', 5, 50000);
-      if (verifyPostTitle[0] === false) {
+      const verifyPostContent = validateInputCharLength(content,'content', 5, 50000);
+      if (verifyPostContent[0] === false) {
         return [false, verifyPostContent[1]];
+      }
+      const verifyAudioUrl = validateInputCharLength(audioUrl,'audioUrl', 3, 50000);
+      if (verifyAudioUrl[0] === false) {
+        return [false, verifyAudioUrl[1]];
       }
       return [true];
     };
@@ -52,29 +53,24 @@ export default class StandardPost {
     }
     const postData = {
       title,
-      excerpt,
       tag,
       featureImageUrl,
       content,
+      audioUrl,
+      excerpt,
       created: Date(),
       modified: Date(),
       userId,
     };
 
     try {
-      const createdPost = await StandardPosts.create(postData);
+      const createdPost = await AudioPosts.create(postData);
       return res.status(201).json({
         success: true,
         message: 'New Entry created',
         createdPost,
       });
     } catch (error) {
-      if(error.code === 11000){
-        return res.status(400).json({
-          success: false,
-          message: 'Duplicate Post',
-        });
-      }
       return res.status(400).json({
         success: false,
         message: 'Error creating Post',
@@ -82,14 +78,25 @@ export default class StandardPost {
       });
     }
   }
-  public async modifyPost(req: Request, res: Response): Promise<object> {
+  /**
+   * @description - Modify Audio Post
+   *
+   * @param {object} req - HTTP Request
+   *
+   * @param {object} res - HTTP Response
+   *
+   * @return {object} The Promise Object
+   *
+   * @memberof AudioPost
+   */
+  public async modifyAudioPost(req: Request, res: Response): Promise<object> {
     const userReq = req as IGetUserAuthInfoRequest;
     const userId = userReq.user.id;
     const {
       postId,
     } = req.params;
     const {
-      title, tag, featureImageUrl, content, excerpt,
+      title, tag, featureImageUrl, content, audioUrl, excerpt,
     } = req.body;
     const validatePost = () => {
       const verifyPostTitle = validateInputCharLength(title,'title', 5, 1000);
@@ -97,7 +104,7 @@ export default class StandardPost {
         return [false, verifyPostTitle[1]];
       }
       const verifyPostContent = validateInputCharLength(content,'content', 5, 50000);
-      if (verifyPostTitle[0] === false) {
+      if (verifyPostContent[0] === false) {
         return [false, verifyPostContent[1]];
       }
       return [true];
@@ -110,22 +117,23 @@ export default class StandardPost {
       });
     }
     try {
-      const verifyUser = await verifyOwner(userId,postId,StandardPosts);
-      if (verifyUser[0]) {
+        const verifyUser = await verifyOwner(userId,postId,AudioPosts);
+        if (verifyUser[0]) {
         const postData = {
           title: title || verifyUser[1].title,
           tag: tag || verifyUser[1].tag,
           featureImageUrl: featureImageUrl || verifyUser[1].featureImageUrl,
-          excerpt: excerpt || verifyUser[1].excerpt,
           content: content || verifyUser[1].content,
+          audioUrl: audioUrl || verifyUser[1].audioUrl,
+          excerpt: excerpt || verifyUser[1].excerpt,
           modified: Date(),
         };
-        const modifiedPost = await StandardPosts.updateMany({
+        const modifiedPost = await AudioPosts.updateMany({
           _id: postId,
         },
-          {
-            $set: postData,
-          });
+        {
+          $set: postData,
+        });
         return res.status(201).json({
           success: true,
           message: ' Entry Modified',
@@ -135,7 +143,7 @@ export default class StandardPost {
       return res.status(verifyUser[1].errorCode).json({
         success: false,
         message: verifyUser[1].message,
-        postFound: verifyUser[1].postFound,
+        
       });
     } catch (error) {
       return res.status(500).json({
@@ -147,7 +155,7 @@ export default class StandardPost {
   }
 
   /**
-   * @description - Fetches All Standard Post
+   * @description - Fetches All Audio Post
    *
    * @param {object} req - HTTP Request
    *
@@ -155,22 +163,22 @@ export default class StandardPost {
    *
    * @return {object} The Promise Object
    *
-   * @memberof StandardPosts
+   * @memberof AudioPost
    */
-  public async fetchAll(req: Request, res: Response): Promise<object> {
+  public async fetchAllAudioPost(req: Request, res: Response): Promise<object> {
     try {
-      const allStandardPosts = await StandardPosts.find({});
-      if (allStandardPosts) {
+      const allAudioPosts = await AudioPosts.find({});
+      if (allAudioPosts) {
         return res.status(200).json({
           success: true,
-          message: 'Standard Post Found!',
-          allStandardPosts,
+          message: 'Audio Post Found!',
+          allAudioPosts,
         });
       }
       return res.status(204).json({
         success: true,
-        message: 'No Standard Post Found!',
-        allStandardPosts: [],
+        message: 'No Audio Post Found!',
+        allAudioPosts: [],
       });
     } catch (error) {
       return res.status(500).json({
@@ -180,8 +188,9 @@ export default class StandardPost {
       });
     }
   }
-    /**
-   * @description - Fetch Post Details
+  
+  /**
+   * @description - Fetch Audio Post Details
    *
    * @param {object} req - HTTP Request
    *
@@ -189,7 +198,7 @@ export default class StandardPost {
    *
    * @return {object} The Promise Object
    *
-   * @memberof StandardPosts
+   * @memberof AudioPost
    */
   public async fetchPostDetails(req: Request, res: Response): Promise<object> {
     const {
@@ -197,7 +206,7 @@ export default class StandardPost {
     } = req.params;
     try {
       if (mongoose.Types.ObjectId.isValid(postId)) {
-        const postDetails = await StandardPosts.findOne({ _id: postId });
+        const postDetails = await AudioPosts.findOne({ _id: postId });
         if (postDetails) {
           return res.status(200).json({
             success: true,
@@ -207,7 +216,7 @@ export default class StandardPost {
         }
         return res.status(404).json({
           success: false,
-          message: 'No Standard Post Found!',
+          message: 'No Audio Post Found!',
           postDetails: [],
         });
       }
@@ -223,7 +232,8 @@ export default class StandardPost {
       });
     }
   }
- /**
+
+  /**
    * @description - Delete Post
    *
    * @param {object} req - HTTP Request
@@ -232,16 +242,15 @@ export default class StandardPost {
    *
    * @return {object} The Promise Object
    *
-   * @memberof StandardPosts
+   * @memberof AudioPost
    */
-
-  public async deleteStandardPost(req: Request, res: Response): Promise<object> {
+  public async deleteAudioPost (req: Request, res: Response): Promise<object> {
     const userReq = req as IGetUserAuthInfoRequest;
     const userId = userReq.user.id;
     const {
       postId,
     } = req.params;
-    const verifyUser = await verifyOwner(userId,postId,StandardPosts);
+    const verifyUser = await verifyOwner(userId,postId,AudioPosts);
     if(!verifyUser[0]){
       return res.status(verifyUser[1].errorCode).json({
         success: false,
@@ -251,7 +260,7 @@ export default class StandardPost {
     }
     try {
       if (mongoose.Types.ObjectId.isValid(postId)) {
-        const removedPost = await StandardPosts.findOneAndRemove({ _id: postId });
+        const removedPost = await AudioPosts.findOneAndRemove({ _id: postId });
         if (removedPost) {
           return res.status(200).json({
             success: true,
@@ -277,4 +286,3 @@ export default class StandardPost {
     }
   }
 }
-
