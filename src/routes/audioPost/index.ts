@@ -11,5 +11,6 @@ audioPost.get('/audio-post', newAudioPost.fetchAllAudioPost);
 audioPost.post('/audio-post', newAudioPost.createAudioPost);
 audioPost.put('/audio-post/:postId', newAudioPost.modifyAudioPost);
 audioPost.get('/audio-post/:postId', newAudioPost.fetchPostDetails);
+audioPost.delete('/audio-post/:postId', newAudioPost.deleteAudioPost);
 
 export default audioPost;
