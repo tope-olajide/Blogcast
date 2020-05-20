@@ -110,7 +110,7 @@ export default class StandardPost {
       });
     }
     try {
-      const verifyUser = await verifyOwner(userId,postId);
+      const verifyUser = await verifyOwner(userId,postId,StandardPosts);
       if (verifyUser[0]) {
         const postData = {
           title: title || verifyUser[1].title,
@@ -241,7 +241,7 @@ export default class StandardPost {
     const {
       postId,
     } = req.params;
-    const verifyUser = await verifyOwner(userId,postId);
+    const verifyUser = await verifyOwner(userId,postId,StandardPosts);
     if(!verifyUser[0]){
       return res.status(verifyUser[1].errorCode).json({
         success: false,

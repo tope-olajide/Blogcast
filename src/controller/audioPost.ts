@@ -4,7 +4,7 @@ import {
   validateInputCharLength,
 } from '../utils/mySimpleValidator';
 import AudioPosts from '../models/audioPost';
-import verifyAuthorization from '../middleware/validateUser';
+import verifyOwner from '../middleware/validateUser';
 import { IGetUserAuthInfoRequest } from '../interfaces'
 /**
  * @description - Class Definition for the AudioPost Object
@@ -78,4 +78,80 @@ export default class AudioPost {
       });
     }
   }
+  /**
+   * @description - Modify Audio Post
+   *
+   * @param {object} req - HTTP Request
+   *
+   * @param {object} res - HTTP Response
+   *
+   * @return {object} The Promise Object
+   *
+   * @memberof AudioPost
+   */
+  public async modifyAudioPost(req: Request, res: Response): Promise<object> {
+    const userReq = req as IGetUserAuthInfoRequest;
+    const userId = userReq.user.id;
+    const {
+      postId,
+    } = req.params;
+    const {
+      title, tag, featureImageUrl, content, audioUrl, excerpt,
+    } = req.body;
+    const validatePost = () => {
+      const verifyPostTitle = validateInputCharLength(title,'title', 5, 1000);
+      if (verifyPostTitle[0] === false) {
+        return [false, verifyPostTitle[1]];
+      }
+      const verifyPostContent = validateInputCharLength(content,'content', 5, 50000);
+      if (verifyPostContent[0] === false) {
+        return [false, verifyPostContent[1]];
+      }
+      return [true];
+    };
+    const validatePostDetails = validatePost();
+    if (validatePostDetails[0] === false) {
+      return res.status(400).json({
+        success: false,
+        message: validatePostDetails[1],
+      });
+    }
+    try {
+        const verifyUser = await verifyOwner(userId,postId,AudioPosts);
+        if (verifyUser[0]) {
+        const postData = {
+          title: title || verifyUser[1].title,
+          tag: tag || verifyUser[1].tag,
+          featureImageUrl: featureImageUrl || verifyUser[1].featureImageUrl,
+          content: content || verifyUser[1].content,
+          audioUrl: audioUrl || verifyUser[1].audioUrl,
+          excerpt: excerpt || verifyUser[1].excerpt,
+          modified: Date(),
+        };
+        const modifiedPost = await AudioPosts.updateMany({
+          _id: postId,
+        },
+        {
+          $set: postData,
+        });
+        return res.status(201).json({
+          success: true,
+          message: ' Entry Modified',
+          modifiedPost,
+        });
+      }
+      return res.status(verifyUser[1].errorCode).json({
+        success: false,
+        message: verifyUser[1].message,
+        
+      });
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        message: 'Error Modifying Post',
+        error,
+      });
+    }
+  }
+
 }

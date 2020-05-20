@@ -9,5 +9,6 @@ const audioPost = express.Router();
 audioPost.use('*', newAuth.verify);
 
 audioPost.post('/audio-post', newAudioPost.createAudioPost);
+audioPost.put('/audio-post/:postId', newAudioPost.modifyAudioPost);
 
 export default audioPost;
