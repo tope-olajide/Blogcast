@@ -154,4 +154,39 @@ export default class AudioPost {
     }
   }
 
+  /**
+   * @description - Fetches All Audio Post
+   *
+   * @param {object} req - HTTP Request
+   *
+   * @param {object} res - HTTP Response
+   *
+   * @return {object} The Promise Object
+   *
+   * @memberof AudioPost
+   */
+  public async fetchAllAudioPost(req: Request, res: Response): Promise<object> {
+    try {
+      const allAudioPosts = await AudioPosts.find({});
+      if (allAudioPosts) {
+        return res.status(200).json({
+          success: true,
+          message: 'Audio Post Found!',
+          allAudioPosts,
+        });
+      }
+      return res.status(204).json({
+        success: true,
+        message: 'No Audio Post Found!',
+        allAudioPosts: [],
+      });
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        message: 'Error Fetching Post',
+        error,
+      });
+    }
+  }
+  
 }
